@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>電子病例記錄系統</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+      margin: 20px;
+      background-color: #f4f6f9;
+      color: #000000;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    h2 {
+      color: #000000;
+      border-bottom: 2px solid #000000;
+      padding-bottom: 8px;
+      margin-top: 0;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: bold;
+      color: #000000;
+    }
+    /* 輸入框與文字區域輸入的字體設為純黑色 */
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      box-sizing: border-box;
+      border: 1.5px solid #000000;
+      border-radius: 4px;
+      color: #000000; /* 輸入打出來的字是黑色 */
+      background-color: #ffffff;
+      font-size: 15px;
+    }
+    /* 輸入框預設提示字的顏色（較深黑灰色） */
+    input::placeholder, textarea::placeholder {
+      color: #555555;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #000000;
+      box-shadow: 0 0 4px rgba(0,0,0,0.5);
+    }
+    textarea {
+      resize: vertical;
+      height: 90px;
+    }
+    button {
+      background-color: #000000;
+      color: #ffffff;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 15px;
+    }
+    button:hover {
+      background-color: #333333;
+    }
+    /* 跑出來的病例歷史紀錄卡片，強制設定字體為純黑 #000000 */
+    .record-card {
+      background: #ffffff;
+      border: 1px solid #000000;
+      border-left: 6px solid #000000;
+      padding: 14px;
+      margin-top: 12px;
+      border-radius: 4px;
+      color: #000000; /* 顯示出來的結果全是純黑色 */
+      line-height: 1.6;
+      font-size: 16px;
+    }
+    .record-text {
+      color: #000000; /* 內容字體純黑 */
+    }
+    .no-data {
+      color: #000000;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>新增病例記錄</h2>
+  <form id="patientForm">
+    <div class="form-group">
+      <label for="name">病患姓名：</label>
+      <input type="text" id="name" required placeholder="請輸入姓名">
+    </div>
+    <div class="form-group">
+      <label for="date">就診日期：</label>
+      <input type="date" id="date" required>
+    </div>
+    <div class="form-group">
+      <label for="symptoms">主訴與症狀：</label>
+      <textarea id="symptoms" required placeholder="請詳細記錄症狀..."></textarea>
+    </div>
+    <div class="form-group">
+      <label for="diagnosis">診斷結果與醫囑：</label>
+      <textarea id="diagnosis" required placeholder="請詳細記錄診斷與處方..."></textarea>
+    </div>
+    <button type="submit">儲存病例</button>
+  </form>
+
+  <h2 style="margin-top: 32px;">病例歷史紀錄</h2>
+  <div id="recordsList"></div>
+</div>
+
+<script>
+  const form = document.getElementById('patientForm');
+  const recordsList = document.getElementById('recordsList');
+
+  // 讀取本地儲存的病例
+  function loadRecords() {
+    recordsList.innerHTML = '';
+    const records = JSON.parse(localStorage.getItem('medicalRecords')) || [];
+    
+    if (records.length === 0) {
+      recordsList.innerHTML = '<p class="no-data">目前尚無病例紀錄。</p>';
+      return;
+    }
+
+    records.forEach((record) => {
+      const card = document.createElement('div');
+      card.className = 'record-card';
+      // 確保生成產出的文字皆包含在 class="record-text" 內，強制套用純黑色 (#000000)
+      card.innerHTML = `
+        <div class="record-text">
+          <b style="color: #000000;">病患姓名：</b>${record.name} （<b style="color: #000000;">就診日期：</b>${record.date}）<br>
+          <b style="color: #000000;">主訴與症狀：</b>${record.symptoms}<br>
+          <b style="color: #000000;">診斷與醫囑：</b>${record.diagnosis}
+        </div>
+      `;
+      recordsList.appendChild(card);
+    });
+  }
+
+  // 儲存病例至 localStorage
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const newRecord = {
+      name: document.getElementById('name').value,
+      date: document.getElementById('date').value,
+      symptoms: document.getElementById('symptoms').value,
+      diagnosis: document.getElementById('diagnosis').value
+    };
+
+    const records = JSON.parse(localStorage.getItem('medicalRecords')) || [];
+    records.push(newRecord);
+    localStorage.setItem('medicalRecords', JSON.stringify(records));
+
+    form.reset();
+    loadRecords();
+  });
+
+  // 頁面初始化載入
+  loadRecords();
+</script>
+
+</body>
+</html>
